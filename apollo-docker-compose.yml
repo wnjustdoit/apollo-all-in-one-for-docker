@@ -75,5 +75,5 @@ services:
       - APOLLO_PORTAL_ENVS=dev,prod
       - DEV_META
       - PROD_META
-    command: ["/bin/sh", "-c", "wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && chmod +x wait-for-it.sh && ./wait-for-it.sh apollo-configservice:${CONFIG_SERVER_PORT} --timeout=300 --strict -- ./wait-for-it.sh apollo-adminservice:${ADMIN_SERVER_PORT} --timeout=300 --strict -- /apollo-portal/scripts/startup.sh"]
+    command: ["/bin/sh", "-c", "[[ ! -f wait-for-it.sh ]] && wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && chmod +x wait-for-it.sh; ./wait-for-it.sh apollo-configservice:${CONFIG_SERVER_PORT} --timeout=300 --strict -- ./wait-for-it.sh apollo-adminservice:${ADMIN_SERVER_PORT} --timeout=300 --strict -- /apollo-portal/scripts/startup.sh"]
 
