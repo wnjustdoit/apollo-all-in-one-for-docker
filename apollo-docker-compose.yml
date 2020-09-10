@@ -25,7 +25,7 @@ services:
       - SPRING_DATASOURCE_USERNAME
       - SPRING_DATASOURCE_PASSWORD
       - EUREKA_INSTANCE_IP_ADDRESS
-      - APOLLO_EUREKA_SERVER_ENABLED=false
+      - APOLLO_EUREKA_SERVER_ENABLED=${APOLLO_EUREKA_SERVER_ENABLED:-false}
       - SERVER_PORT=${CONFIG_SERVER_PORT}
   apollo-adminservice:
     image: "apolloconfig/apollo-adminservice:${IMAGE_TAG:-1.7.1}"
