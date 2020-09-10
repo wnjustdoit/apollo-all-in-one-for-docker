@@ -1,0 +1,79 @@
+# usage of testing config: docker-compose --env-file .env.dev config
+# usage of run: docker-compose --env-file .env.dev up -d
+version: "3"
+networks:
+  common-network:
+    driver: bridge
+services:
+  apollo-configservice:
+    image: "apolloconfig/apollo-configservice:${IMAGE_TAG:-1.7.1}"
+    container_name: apollo-configservice
+    restart: always
+    hostname: apollo-configservice
+    networks:
+      common-network:
+        aliases:
+          - configservice
+    expose:
+      - ${CONFIG_SERVER_PORT}
+    ports:
+      - ${CONFIG_SERVER_PORT}:${CONFIG_SERVER_PORT}
+    volumes:
+      - "/tmp/apollologs:/opt/logs"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_CONFIG_URL}
+      - SPRING_DATASOURCE_USERNAME
+      - SPRING_DATASOURCE_PASSWORD
+      - EUREKA_INSTANCE_IP_ADDRESS
+      - APOLLO_EUREKA_SERVER_ENABLED=false
+      - SERVER_PORT=${CONFIG_SERVER_PORT}
+  apollo-adminservice:
+    image: "apolloconfig/apollo-adminservice:${IMAGE_TAG:-1.7.1}"
+    container_name: apollo-adminservice
+    restart: always
+    hostname: apollo-adminservice
+    networks:
+      common-network:
+        aliases:
+          - adminservice
+    expose:
+      - ${ADMIN_SERVER_PORT}
+    ports:
+      - ${ADMIN_SERVER_PORT}:${ADMIN_SERVER_PORT}
+    volumes:
+      - "/tmp/apollologs:/opt/logs"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_CONFIG_URL}
+      - SPRING_DATASOURCE_USERNAME
+      - SPRING_DATASOURCE_PASSWORD
+      - EUREKA_INSTANCE_IP_ADDRESS
+      - SERVER_PORT=${ADMIN_SERVER_PORT}
+  apollo-portal:
+    image: "apolloconfig/apollo-portal:${IMAGE_TAG:-1.7.1}"
+    container_name: apollo-portal
+    restart: always
+    hostname: apollo-portal
+    networks:
+      common-network:
+        aliases:
+          - portal
+    depends_on:
+      - apollo-configservice
+      - apollo-adminservice
+    expose:
+      - ${PORTAL_SERVER_PORT}
+    ports:
+      - ${PORTAL_SERVER_PORT}:${PORTAL_SERVER_PORT}
+    volumes:
+      - "/tmp/apollologs:/opt/logs"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_PORTAL_URL}
+      - SPRING_DATASOURCE_USERNAME
+      - SPRING_DATASOURCE_PASSWORD
+      - EUREKA_INSTANCE_IP_ADDRESS
+      - SERVER_PORT=${PORTAL_SERVER_PORT}
+      - APOLLO_PORTAL_ENVS=dev,prod
+      - DEV_META
+      - PROD_META
+    command: ["/bin/sh", "-c", "wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && chmod +x wait-for-it.sh && ./wait-for-it.sh apollo-configservice:${CONFIG_SERVER_PORT} --timeout=300 --strict -- ./wait-for-it.sh apollo-adminservice:${ADMIN_SERVER_PORT} --timeout=300 --strict -- /apollo-portal/scripts/startup.sh"]
+
